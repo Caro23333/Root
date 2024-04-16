@@ -1,2 +1,0 @@
-D:\mingw64\bin\ar.exe qc liblibroot.a CMakeFiles/libroot.dir/CP_Root.cpp.obj CMakeFiles/libroot.dir/CP_RootAnother.cpp.obj CMakeFiles/libroot.dir/CP_RootQuadratic.cpp.obj CMakeFiles/libroot.dir/CP_RootSturmNewton.cpp.obj CMakeFiles/libroot.dir/VAG.cpp.obj CMakeFiles/libroot.dir/VAS.cpp.obj CMakeFiles/libroot.dir/testlib.cpp.obj
-D:\mingw64\bin\ranlib.exe liblibroot.a

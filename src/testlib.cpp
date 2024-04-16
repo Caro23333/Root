@@ -27,25 +27,6 @@ namespace testlib {
         return testlib::rand() % len + L;
     }
 
-    /* double randomGaussian(double mean, double stdD) {
-        static bool rest = false;
-        static double restValue = -1;
-        if (rest) {
-            rest = false;
-            return restValue * stdD + mean;
-        }
-        double u, v, s;
-        do {
-            u = randomDouble();
-            v = randomDouble();
-            s = u * u + v * v;
-        } while (!(0 < s && s < 1));
-        s = std::sqrt(-2 * log(s) / s);
-        u *= s, v *= s;
-        restValue = v, rest = true;
-        return u * stdD + mean;
-    } */
-
     void expandPoly(testlib::poly& p, const std::vector<mpq_class>& roots) {
         p.roots.clear(); p.coefficients.clear();
         std::vector<mpq_class> f; f.push_back(1);
@@ -129,9 +110,6 @@ namespace testlib {
         }
         else if (mode == 2) {
             p = genPolyDouble(randomInteger(2, 20), 10);
-        }
-        else if (mode == 3) {
-            p = genPolyInt(2, -100, 100);
         }
         else if (mode == 3) {
             p = genPolyInt(2, -100, 100);
@@ -319,9 +297,9 @@ namespace testlib {
 
             ress.push_back(res);
 
-            os << "Test #" << i + 1 << endl;
-            for(int j = 0; j < res.size(); j++)
-                os << res[j].m_root << endl;
+            os << "Test #" << i + 1 << std::endl;
+            for(int j = 0; j < (int) res.size(); j++)
+                os << res[j].m_root << std::endl;
             //os << endl;  
         }
 
