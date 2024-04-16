@@ -1,0 +1,62 @@
+\subsection{精度优化}
+
+	不难注意到，提升算法精度的最大瓶颈在于double类型本身无法精确表达几乎全体实数。考虑到我们的算法中涉及的运算均对有理数封闭，我们在各个算法中运用了 gmp 高精度有理数和整数库进行计算，并利用 gmp 库生成测试用多项式，这理论上允许我们做到对任意精度的根进行数值求解。
+
+\subsection{效率优化}
+
+	高精度有理数会带来巨大的算术开销。目前的三个算法的主要区别在于实根分离的手段不同，而在最终求解实根时全部采用牛顿迭代法。牛顿迭代法在大部分条件下二阶收敛至一个实根，其 gmp 有理数的分子分母也二阶增长，这意味着单步迭代的开销会随迭代次数极速上升，严重限制了求解精度的提升。
+
+	我们在对答案不影响的情况下进行了粗略的约分，降低计算开销。
+
+\begin{algorithm}[粗略约分]~
+	
+	输入：正有理数的最简形式 $\frac{a}{b}$，要求精度 $2^{-\varepsilon}$，向下近似还是向上近似。
+	
+	输出：粗略约分后的有理数。
+	
+	\textbf{步骤1.} 找出最小的 $k$ 使得 $2^k \geq \frac{b}{\lfloor\frac{a}{b}\rfloor + 1}$。
+	
+	\textbf{步骤2.} 如果 $k \leq \varepsilon + C$，则直接输出 $\frac{a}{b}$。其中 $C$ 是一个不低于 $2$ 的常数。
+	
+	\textbf{步骤3.} 令 $M = 2^{k - \varepsilon - C}$，令 $a' = \frac{a}{M}, b' = \frac{b}{M}$。
+	
+	\textbf{步骤4.} 如果要求向下近似，输出 $\frac{a'}{b' + 1}$，否则输出 $\frac{a' + 1}{b'}$。
+	
+	\contribution{潘佳奇}
+	
+\end{algorithm}
+
+\begin{proof}[粗略约分]~
+	
+	设 $a = a' M + c, b = b' M + d$，则 $0 \leq c, d < M$。
+	
+	则有
+	
+	$$
+	\begin{aligned}
+		& \left|\frac{a'M + c}{b'M + d} - \frac{a'}{b'}\right| \\
+		= & \left|\frac{(a'M + c)b' - (b'M + d)a'}{(b'M + d)b'}\right| \\
+		= & \left|\frac{cb' - da'}{(b'M + d)b'}\right| \\
+		\leq & \frac{\max(b', a')M}{b'^2M} \\
+		= & \frac{\max(1, \frac{a'}{b'})}{b'} \\
+		< & \frac{\max(1, \frac{a + 1}{b})}{b'} \\
+		< & \frac{1}{2^{\varepsilon + 1}}
+	\end{aligned}
+	$$
+	
+	因为 $\frac{1}{b'} < \frac{1}{2^{\varepsilon + 1}}$，所以 $\frac{a' + 1}{b'}, \frac{a'}{b' + 1}$ 都在容差范围内。
+	
+	并且有 $\frac{a'}{b' + 1} \leq \frac{a}{b} \leq \frac{a' + 1}{b'}$。
+	
+	\qedhere
+	
+	\contribution{潘佳奇}
+	
+\end{proof}
+
+经过验证，使用粗略约分大幅度地加快了牛顿迭代法的速度。
+
+
+在 Sturm-Newton 方法的实际验证过程中，注意到牛顿迭代的开销过大（实际上粗略约分对该算法的表现改善程度并不大——），故将步骤4的阈值 $L$ 从 $0.1$ 调整为 $L = \min\{\sqrt e, 10^{-2}\}$ ，增加了实根分离的精度，减少了迭代次数，平衡了两部分开销，优化效果明显。
+
+\contribution{吕敬一}

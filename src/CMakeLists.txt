@@ -1,0 +1,5 @@
+aux_source_directory(. F_SRC)
+add_library(libroot ${F_SRC})
+target_link_libraries(libroot ${PROJECT_SOURCE_DIR}/lib/libgmp.a ${PROJECT_SOURCE_DIR}/lib/libgmpxx.a)
+target_include_directories(libroot PUBLIC ../include)
+target_include_directories(libroot PUBLIC ../lib)

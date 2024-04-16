@@ -1,0 +1,101 @@
+% package
+\def \mathfamilydefault {\rmdefault}
+% \usepackage{xeCJK}
+\usepackage{latexsym, amsmath, amssymb, amsfonts, amstext, amsbsy, amsopn, xcolor, ulem, color}
+\usepackage{verbatim}
+\usepackage{esint}
+\usepackage{mathrsfs}
+\usepackage{setspace}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+
+\usepackage{geometry}
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+% font
+\usepackage{indentfirst}
+\setlength{\parindent}{2em}
+\linespread{1.3}
+\everymath{\displaystyle}
+
+% \setCJKmainfont[BoldFont=simhei.ttf]{simsun.ttc}
+% \setCJKfamilyfont{song}{simsun.ttc}
+% \setCJKfamilyfont{fs}{simfang.ttf}
+% \setCJKfamilyfont{kai}{simkai.ttf}
+% \setCJKfamilyfont{hei}{simhei.ttf}
+
+% theorem
+\mdfdefinestyle{theoremstyle}{
+	linecolor=black!70,linewidth=2pt,topline=false,roundcorner=5pt,
+	frametitlerule=true,
+	apptotikzsetting={\tikzset{mdfframetitlebackground/.append style={%
+		shade,left color=black!20, right color=black!30}}},
+}
+\mdfdefinestyle{proofstyle}{
+	linecolor=blue!70,linewidth=2pt,topline=false,roundcorner=5pt,
+	frametitlerule=true,
+	apptotikzsetting={\tikzset{mdfframetitlebackground/.append style={%
+		shade,left color=blue!20, right color=blue!30}}},
+}
+\mdfdefinestyle{examplestyle}{
+	linecolor=lime!90,linewidth=2pt,topline=false,roundcorner=5pt,
+	frametitlerule=true,
+	apptotikzsetting={\tikzset{mdfframetitlebackground/.append style={%
+		shade,left color=lime!40, right color=lime!50}}},
+}
+\mdfdefinestyle{codestyle}{
+	linecolor=violet!50,linewidth=2pt,topline=false,roundcorner=5pt,
+	frametitlerule=true,
+	apptotikzsetting={\tikzset{mdfframetitlebackground/.append style={%
+		shade,left color=violet!20, right color=violet!30}}},
+}
+\mdtheorem[style=theoremstyle]{theorem}{定理}
+\mdtheorem[style=theoremstyle]{definition}{定义}
+\mdtheorem[style=theoremstyle]{lemma}{引理}
+\mdtheorem[style=theoremstyle]{algorithm}{算法}
+\mdtheorem[style=theoremstyle]{conjecture}{猜想}
+\mdtheorem[style=proofstyle]{proof}{证明}
+\mdtheorem[style=proofstyle]{solution}{解法}
+\mdtheorem[style=examplestyle]{example}{例子}
+\mdtheorem[style=examplestyle]{problem}{问题}
+\mdtheorem[style=examplestyle]{fact}{事实}
+\mdtheorem[style=codestyle]{myverbatim}{代码}
+
+
+\mdfdefinestyle{contributionstyle}{
+	linecolor=red!70,linewidth=2pt
+}
+
+\newcommand*\contribution[2][提供]{
+	\begin{mdframed}[default,style=contributionstyle]
+		贡献认定：由~\textbf{#2}~#1。
+	\end{mdframed}
+}
+
+% mathrm
+\def\rd{\mathrm{d}}
+\def\rD{\mathrm{D}}
+\def\trace{\mathrm{tr}}
+\def\argmin{\mathop{\mathrm{argmin}}}
+\def\argmax{\mathop{\mathrm{argmax}}}
+
+% new command
+\newcommand*\Partial[3][1]{
+	\ifnum #1=1 {
+		\frac{\partial #2}{\partial #3}
+	} \else {
+		\frac{\partial^{ #1} #2}{\partial #3^{ #1}}
+	}
+	\fi
+}
+\newcommand*\ImplicitPt[3]{ \left(\Partial{ #1}{ #2}\right)_{ #3} }
+
+\newcommand*\Inner[2]{ \left< #1, #2 \right> }
+\newcommand*\Norm[2][2]{ \Vert #2 \Vert_{ #1} }
+\newcommand*\HFrac[2]{ \left. #1 \middle/ #2 \right. }
+\newcommand*\HFracB[2]{ \left. \left( #1\right) \middle/ \left( #2 \right) \right. }
+\newcommand\qedhere{\hfill $\square$\par}
+\newcommand\newcontent{\textbf{\color{red}{[New]}}}

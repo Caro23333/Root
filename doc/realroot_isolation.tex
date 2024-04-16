@@ -1,0 +1,373 @@
+\subsection{前提准备}
+
+\subsubsection{重根的处理}
+
+	根据前述算法的测试结果，多项式的重根会严重影响实根分离算法的表现。为此，提出了如下子问题:
+
+\begin{problem}[平方因子分解]~
+
+	对于有重根的多项式，其要转化为没有重根的多项式以方便计算。
+
+    亦即，要找到一个新多项式，满足两个多项式零点相同，但新多项式方程没有重根。
+
+	\contribution{潘佳奇}
+
+\end{problem}
+
+经过检索与学习，提出了如下算法解决该子问题：
+
+\begin{algorithm}[Yun's algorithm]~
+
+	对于要分解的非零多项式，假设最终 $k$ 重根 $(x - a)^k$ 被分解到多项式 $a_k(x)$ 里，设
+	$$
+	f(x) = a_1(x) a_2^2(x) a_3^3(x) \cdots a_k^k (x).
+	$$
+
+	则有初始化：
+	$$
+	\begin{aligned}
+		b_0(x) & := f(x); \\
+		d_0(x) & := f'(x); \\
+		i & := 0. \\
+	\end{aligned}
+	$$
+
+	以及迭代过程：重复以下过程直到 $b_i = 1$。
+	$$
+	\begin{aligned}
+		a_i(x) & := \gcd(b_i(x), d_i(x))); \\
+		i & := i + 1; \\
+		b_{i}(x) & := \frac{b_{i-1}(x)}{a_{i-1}(x)}; \\
+		c_{i}(x) & := \frac{d_{i-1}(x)}{a_{i-1}(x)}; \\
+		d_{i}(x) & := c_{i}(x) - b'_{i}(x). \\
+	\end{aligned}
+	$$
+
+	计算出的 $a_i(x)$ 即为要求的结果。
+
+	\contribution[摘自维基百科 \footnotemark]{潘佳奇}
+	
+\end{algorithm}
+\footnotetext{\url{https://en.wikipedia.org/wiki/Square-free\_polynomial}}
+
+\begin{proof}[Yun's algorithm]~
+
+	对于 $f$ 的分解：
+	$$
+	f(x) = a_1(x) a_2^2(x) a_3^3(x) \cdots a_k^k (x).
+	$$
+
+	令 $a_0(x) = a_2^1(x) a_3^2(x) \cdots a_k^{k - 1}(x)$，则对于 $f(x)$，有
+	$$
+	f(x) = a_0(x) a_1(x) \cdots a_k(x)
+	$$
+
+	对于 $f'(x)$，有
+	$$
+	f'(x) = a_0(x) \sum_{i=1}^{k} i a_i'(x) a_1(x) \cdots a_{i - 1}(x) a_{i + 1}(x) \cdots a_k(x)
+	$$
+
+	与前置约定中的『无重根多项式与其导函数最大公因子为 $1$』同理，因为 $a_1(x) a_2(x) \cdots a_k(x)$ 没有重根，所以有 $gcd(\frac{f(x)}{a_0(x)}, \frac{f'(x)}{a_0(x)}) = 1$。
+
+	所以 $\gcd(f(x), f'(x)) = a_0(x)$。
+
+	于是令 $b_1(x) = \frac{f(x)}{a_0(x)}, c_1(x) = \frac{f'(x)}{a_0(x)}, d_1(x) = c_1(x) - b_1'(x)$，则
+	$$
+	d_1(x) = a_1(x) \sum_{i=2}^{k} (i - 1) a_i'(x) a_2(x) \cdots a_{i - 1}(x) a_{i + 1}(x) \cdots a_k(x)
+	$$
+
+	再次引用『多项式与其导函数公因子』的引理，于是有 $\gcd(d_1(x), b_1(x)) = a_1(x)$
+
+	于是由迭代过程，有
+	$$
+	b_2(x) = a_2(x) \cdots a_k(x),
+	$$
+	$$
+	c_2(x) = \sum_{i=2}^{k} (i - 1) a_i'(x) a_2(x) \cdots a_{i - 1}(x) a_{i + 1}(x) \cdots a_k(x).
+	$$
+
+	由归纳可证，对于任意 $\xi \in \mathbb{N}^+, \xi \leq k$，有
+	$$
+	a_\xi = \gcd(b_{\xi}, d_{\xi})
+	$$
+	$$
+	b_\xi(x) = a_\xi(x) \cdots a_k(x),
+	$$
+	$$
+	c_\xi(x) = \sum_{i=\xi}^{k} (i - \xi + 1) a_i'(x) a_\xi(x) \cdots a_{i - 1}(x) a_{i + 1}(x) \cdots a_k(x).
+	$$
+
+	即迭代过程每步提取出了正确的 $a_i (i \geq 1)$。\qedhere
+
+	\contribution[证明]{潘佳奇}
+
+\end{proof}
+
+\subsubsection{实根分离}
+
+解决重根问题之后，再给出如下定义与定理，以实现更高效的实根分离：
+
+\begin{definition}[实根数]~
+
+	对于多项式 $f(x) = a_n x^n + \dots + a_1 x + a_0$，定义实根数 $\varrho(f(x))$ 为 $f(x)$ 的实根数（重根计算多次，下同），$\varrho_+(f(x))$ 为 $f$ 的正实根数，$\varrho_-(f(x))$ 为 $f$ 的负实根数。$\varrho_{l,r}(f(x))$ 为区间 $(l, r]$ 之间 $f$ 的实根数。
+
+	\contribution{潘佳奇}
+	
+\end{definition}
+
+\begin{definition}[多项式的变号数]~
+
+	对于多项式 $f(x) = a_n x^n + \dots + a_1 x + a_0$，定义变号数 $\var(f)$ 为序列 $[a_n, a_{n-1}, \dots, a_0]$ 的变号次数，即忽略 $0$ 的情况下，正负号变了多少次。
+
+	形式化地讲，$\var(f)$ 就是有多少对二元组 $(i, j)$ 满足 $i < j, a_i a_j < 0$，且 $\forall i < k < j, a_k = 0$。
+
+	\contribution{潘佳奇}
+	
+\end{definition}
+
+\begin{theorem}[笛卡尔符号规则（Descartes' rule of signs）]~
+
+	对于任意多项式 $f(x)$，有 $\var(f) \geq \varrho_+(f)$，且 $\var(f) - \varrho_+(f)$ 一定是偶数。
+
+	\contribution{潘佳奇}
+	
+\end{theorem}
+
+Descartes' rule of signs 只能求出正根的界，对于负根，令 $g(x) = f(-x)$ 即可。
+
+\begin{theorem}[]~
+
+	$$\var(f) = 0 \iff \varrho_+(f) = 0,$$
+	$$\var(f) = 1 \implies \varrho_+(f) = 1.$$
+
+	\contribution{潘佳奇}
+
+\end{theorem}
+
+\begin{theorem}[Budan's theorem]~
+
+	对于多项式 $f$，取 $a, b \in \mathbb{R}$，$a < b$，则有：
+	$$
+	\begin{aligned}
+		\var(f(x + a)) & \geq \var(f(x + b)) \\
+		\varrho_{a, b} (f) & \leq \var(f(x + a)) - \var(f(x + b)) \\
+	\end{aligned}
+	$$
+
+	并且 $\var(f(x + a)) - \var(f(x + b)) - \varrho_{a, b} (f)$ 一定是偶数。
+
+	\contribution{潘佳奇}
+	
+\end{theorem}
+
+\subsection{算法流程}
+
+\subsubsection{实根分离算法-VAS 法}
+
+\begin{algorithm}[实根分离算法-VAS 法]~
+
+	令没有重根的多项式为 $f(x)$，不妨讨论只求出正根的情况。
+
+	维护 $S$ 为算出区间的集合。同时使用 Descartes' rule of signs 和 Budan's theorem 来计算正实根以及区间实根的存在性。
+
+	初始化时 $S = \emptyset$。
+
+	\textbf{步骤 1.} 先判断特殊情况，当 $f(x)$ 不存在正实数根的时候，将 $S$ 作为返回值结束算法。
+
+	\textbf{步骤 2.} 当 $f(0) = 0$ 时，说明 $0$ 是根，将 $0$ 分割出来并且将多项式除以 $x$，并将 $\{0, 0\}$ 加入 $S$，返回\textbf{步骤 1}。
+
+	\textbf{步骤 3.} 当 $f(x)$ 只有一个根的时候，已经达成实数分离的目标，将 $\{(0, +\infty)\}$ 作为结果返回。
+
+	\textbf{步骤 4.} 此时有一个根据多项式系数得到的数 $b$，粗略地标定根的界。（在此算法里设为 $1$）。
+
+	\textbf{步骤 5.} 对多项式做代入 $x = x' + b$，将 $(b, +\infty)$ 映射到 $(0, +\infty)$，并递归求出 $f(x')$ 的实根分割区间后，还原出对应 $(b, +\infty)$ 上的区间集合 $S'$，并令 $S \leftarrow S \cup S'$。
+
+	\textbf{步骤 6.} 如果在 $(0, b)$ 中有实根，则代入 $x = \frac{b}{1 + x'}$，将 $(0, b)$ 映射到 $(0, +\infty)$，并递归求出 $f(x')$ 的实根分割区间后，还原出对应 $(b, +\infty)$ 上的区间集合 $S'$，并令 $S \leftarrow S \cup S'$。
+
+	\textbf{步骤 7.} 将 $S$ 作为返回值返回。
+
+	\contribution[摘自 Polynomial Real Root Isolation Using Vincent’s
+Theorem of 1836 第 143 页，有所改编]{潘佳奇}
+
+\end{algorithm}
+
+\subsubsection{实根分离算法-二分法}
+
+\begin{algorithm}[实根分离算法-二分法]~
+
+    \label{bisection-isolation}
+
+    算法接受一个（不含重根的）多项式 $f(x)=a_nx^n+a_{n-1}x^{n-1}+\dots+a_1x+a_0$，并求解其在 $[0, 1)$ 上的实根分割区间。
+    
+    首先判定多项式常数项 $a_0$ 是否为 $0$。若是，则 $x=0$ 是多项式的零点，并将多项式除以 $x$，直至常数项不为 $0$。
+
+    对于常数项不为 $0$ 的 $n$ 次多项式 $f(x)$，求出 $g(x) = (x+1)^n \cdot f(\frac{1}{x+1})$。
+
+    假设 $f(x)$ 在 $(0, 1)$ 上有某实根 $x_0$，则 $g(\frac{1}{x_0}-1) = 0$。
+
+    同样地，若 $g(x)$ 在 $(0, +\infty)$ 有某实根 $x_1$，则 $f(\frac{1}{x_1+1})=0$。
+
+    亦即，$f(x) = 0$ 在 $(0, 1)$ 上的实根与 $g(x) = 0$ 在 $(0, +\infty)$ 上的实根一一对应。故可对 $g(x)$ 应用 Descartes' rule of signs 以判定 $f(x) = 0$ 在 $(0, 1)$ 上的实根数量。
+
+    若 Descartes' rule of signs 确定 $f(x) = 0$ 在 $(0, 1)$ 上只有零或一个实根，则算法结束。否则，构造 $g_0(x) = 2^n f(\frac{x}{2})$，$g_1(x) = 2^n f(\frac{x+1}{2})$，它们在 $[0, 1)$ 上的实根分别对应了 $f(x) = 0$ 在 $[0, \frac{1}{2}), [\frac{1}{2}, 1)$ 上的实根，递归求解即可。
+
+    \textbf{步骤1.} 初始化队列 q，包含一个三元组 $(c, k, f(x))$，代表当前求解的多项式 $f(x)$ 在 $[0, 1)$ 上的根对应最初函数 $[\frac{c}{2^k}, \frac{c+1}{2^k})$ 上的根。记输入的多项式为 $f_0(x)$，最初的三元组为 $(0, 0, f_0(x))$。
+
+    \textbf{步骤2.} 如果队列 q 为空则结束算法。否则，从队列 q 中取出一个三元组 $(c, k, f(x))$，判断 $f(x)$ 常数项是否为 $0$，如果是，则将 $[\frac{c}{2^k}, \frac{c}{2^k}]$ 置入答案序列中，并将 $f(x)$ 整体除以 $x$，重复执行这一步直到常数项不为 $0$。
+
+    \textbf{步骤3.} 计算 $V = \var((x+1)^n \cdot f(\frac{1}{x+1}))$。
+
+    \textbf{步骤4.} 若 $V = 0$，丢弃该区间并转到 \textbf{步骤2}。
+
+    \textbf{步骤5.} 若 $V = 1$，将该区间 $[\frac{c}{2^k}, \frac{c+1}{2^k}]$ 加入到答案序列并转到 \textbf{步骤2}。
+
+	\textbf{步骤6.} 若 $V > 1$，二分该区间，将三元组 $(2c, k + 1, 2^n f(\frac{x}{2})), (2c + 1, k + 1, 2^n f(\frac{x+1}{2}))$ 加入队列 q，再转到 \textbf{步骤2}。
+	
+	\contribution{叶隽希}
+
+\end{algorithm}
+
+\subsection{理论证明}
+
+\begin{proof}[笛卡尔符号规则（Descartes' rule of signs）]~
+
+    考虑多项式 $f(x) = a_nx^n + a_{n-1}x^{n-1} + \dots + a_1x + a_0$。
+    若 $a_n \neq 1$，不妨将多项式各项系数除以 $a_n$，得到的新多项式首项系数为 $1$，且实根数与变号数均未改变。
+    若 $a_0 = 0$，则一定存在某个 $x^m$，将多项式除以 $x^m$ 后得到新的多项式常数项不为 $0$。新的多项式\textbf{正实根数}与变号数均未改变。
+    故不妨假设 $a_n=1$ 且 $a_0 \neq 0$。
+
+    \begin{lemma}[]~
+        若 $a_0 < 0$，$\var(f(x))$ 为奇数。
+        若 $a_0 > 0$，$\var(f(x))$ 为偶数。
+    \end{lemma}
+
+    注意到首项系数为正，则若变号奇数次最后为负，变号偶数次最后为正。
+
+    \begin{lemma}[]~
+        若 $a_0 < 0$，$\varrho_+(f(x))$ 为奇数。
+        若 $a_0 > 0$，$\varrho_+(f(x))$ 为偶数。
+    \end{lemma}
+
+    比较直观的感受是，将函数图像在坐标轴上画出，由于首项系数是 $1$，那么多项式在 $x$ 轴正方向足够远处一定在轴上方（即函数值为正）。
+
+    而 $a_0$ 的正负代表了函数图像在 $y$ 轴附近在坐标轴上方或者下方。
+
+    注意到每有一个正实根出现，函数图像必定会穿过 $x$ 轴一次（暂且不考虑重根），则函数值正负必定改变一次。
+
+    故同样，若有奇数个零点则 $a_0$ 与 $a_n=1$ 异号，若有偶数个零点则 $a_0$ 与 $a_n=1$ 同号。
+
+    具体证明可以考虑应用归纳法，每次给多项式乘上一个因子 $(x-p)$，$p$ 如果为正根便会改变 $a_0$ 的正负性，如果为负根便不影响（根为零的情况不存在）。
+    
+    \begin{lemma}[]~
+        $$
+        \var(f(x) \cdot (x-p)) > \var(f(x)) (p > 0)
+        $$
+    \end{lemma}
+
+    在给出证明之前，注意到对于 $p > 0$，有 $\varrho_+(f(x) \cdot (x-p)) = \varrho_+(f(x)) + 1$
+
+    而对于任意一个多项式 $f(x)$，其总可以分解为 $f(x) = g(x) \cdot (x-x_1) \cdot (x-x_2) \dots (x-x_m)$ 的形式，其中 $x_k > 0$ 且 $g(x)=0$ 无正实根。（即提取出所有正根）
+
+    根据定义，$\varrho_+(f(x)) = m$，而 $\var(g(x)) \geq 0$，由引理归纳可得 $\var(f(x)) \geq m = \varrho_+(f(x))$。
+
+    又由前两条引理可知 $\var(f(x))$ 与 $\varrho_+(f(x))$ 奇偶性相同。综合可知定理成立。
+	\qedhere
+
+    \begin{proof}[]~
+
+    考虑对 $\var(f(x))$ 产生贡献的每一个二元组 $(i, j)$，它满足 $i < j, a_ia_j < 0, \forall i < k < j, a_k = 0$。
+
+    注意到 $f(x) \cdot (x-p) = \dots + (a_i -p a_{i+1}) x^{i+1} + \dots$。
+
+    若 $a_i < 0$，则 $a_{i+1} \geq 0$，$a_i -p a_{i+1} < 0$
+
+    若 $a_i > 0$，则 $a_{i+1} \leq 0$，$a_i -p a_{i+1} > 0$
+
+    对于每一个二元组 $(i_p, j_p) (1 \leq p \leq \var(f(x)))$，当 $p>1$ 时显然有 $a_{i_{p-1}}a_{i_p} < 0$，故相应的，设 $f(x) \cdot (x-p) = a_{n+1}'x^{n+1} + \dots + a_1'x + a_0'$，则 $a_{i_{p-1}+1}'a_{i_p}' < 0$。
+
+    而又有 $a_0a_{i_1}>0, a_na_{i_{\var(f(x))}}>0, a_0'a_0<0$，故存在序列 $(a_0', a_{i_1+1}, a_{i_2+1}, \dots, a_{i_{\var(f(x))}}, a_n')$，这一序列中任意相邻两项均为异号，而该序列长度为 $\var(f(x)) + 2$，故显然 $\var(f(x) \cdot (x-p)) \geq (\var(f(x)) + 2) - 1$。
+
+    \end{proof}
+
+    \qedhere
+
+    \contribution{叶隽希}
+    
+\end{proof}
+
+	由于朴素的牛顿法要求初始点离根较近，所以需要二分法来确定包含根的较小区间。下面提出区间运算的牛顿迭代。使用区间运算可以规避这个二分。
+
+\begin{definition}[区间算术]~
+	
+	定义区间的加减乘和数除为：
+	$$
+	[l_1, r_1] + [l_2, r_2] = [l_1 + l_2, r_1 + r_2]
+	$$
+	$$
+	[l_1, r_1] - [l_2, r_2] = [l_1 - r_2, r_1 - l_2]
+	$$
+	$$
+	a = l_1 r_1; b = l_1 r_2 ; c = l_2 r_1; d = l_2 r_2
+	$$
+	$$
+	[l_1, r_1] \times [l_2, r_2] = [\min\{a, b, c, d\}, \max\{a, b, c, d\}]
+	$$
+	
+	\contribution{潘佳奇}
+\end{definition}
+
+\begin{algorithm}[区间牛顿法]~
+	不妨设初始区间只包含正数。
+	
+	输入：精度 $\varepsilon$，求根区间 $[l, r]$，函数 $f$。
+	
+	输出：声明不存在根或者输出满足精度要求的一个根。
+	
+	令 $g(m, [l, r]) = [\min(m - \frac{f(m)}{d_l}, m - \frac{f(m)}{d_r}), \max(m - \frac{f(m)}{d_l}, m - \frac{f(m)}{d_r})]$。
+	
+	\textbf{步骤1.} 如果 $l > r$ 说明无解。退出迭代。
+	
+	\textbf{步骤2.} 如果 $r - l < \varepsilon$，表示已经区间收敛到要求范围内。
+	
+	\textbf{步骤3.} 对于当前区间 $[l, r]$，通过区间算术算出 $[d_l, d_r] = f'([l, r])$。
+	
+	\textbf{步骤4.} 令 $m = \frac{l + r}{2}$。
+	
+	\textbf{步骤5.} 如果 $0 \notin [d_l, d_r]$，则令新区间为 $[l', r'] = [l, r] \cap g(m, [d_l, d_r])$，返回步骤 1 继续迭代。
+	
+	\textbf{步骤6.} 此时 $0 \in [d_l, d_r]$，则对 $[l, r] \cap g(m, [d_l, 0))$ 和 $[l, r] \cap g(m, (0, d_r])$ 产生的两个区间进行递归。
+	
+	\contribution[摘自 julia 文档\footnotemark]{潘佳奇}
+\end{algorithm}
+\footnotetext{\url{https://juliaintervals.github.io/pages/explanations/explanationNewton/}} 
+
+\begin{proof}[\newcontent 区间牛顿法的正确性]~
+
+	对于区间 $x_n = [l, r]$, $m = \frac{l + r}{2}$。则 $x_{n + 1} = m - \frac{f(m)}{f'(x_n)}$。
+
+	对于 $f$ 存在 $x^*$ 使得 $f(x^*) = 0$，归纳证明 $x^* \in x_n$。假设对于 $n$ 成立，不妨设 $x^* < m$，存在 $\xi \in (x^*, m) \in (l, r)$，使得 $f'(\xi) = \frac{f(m) - f(x^*)}{m - x^*}$，即 $x^* = m - \frac{f(m)}{f'(\xi)}$，所以 $x^* \in x_{n + 1}$。
+
+
+	\contribution{潘佳奇}
+
+\end{proof}
+
+当导函数取值不存在零点的时候，该算法二阶收敛至实根，并且必定收敛至实根分离所得初始区间之内的唯一实根。
+
+\begin{algorithm}[VAS + 区间牛顿迭代]~
+
+	\textbf{步骤1.} 使用 Yun's Algorithm 进行平方因子分解。
+
+	\textbf{步骤2.} 使用 VAS 算法进行实根分离。
+
+	\textbf{步骤3.} 使用区间牛顿迭代计算每个区间中根。
+
+	\contribution{潘佳奇}
+
+\end{algorithm}
+
+由于实根估计并不能准确地到达下界，复杂度和二分法相同。
+
+对于区间牛顿迭代，导函数取值不为 $0$ 才能二阶收敛。然而由于多项式区间取值的上下确界不好计算，所以使用了区间算术，这导致很大一部分情况只有一阶的收敛速度。
+
+这个算法在运行效率上没有很大提升，在实际的实现中表现并不好。但是在运算过程中全部使用了区间，避免了牛顿迭代过程中发散的可能。

@@ -1,0 +1,5 @@
+add_executable(${PROJECT_NAME} testMain.cpp)
+target_link_libraries(${PROJECT_NAME} libroot)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/lib/libgmp.a ${PROJECT_SOURCE_DIR}/lib/libgmpxx.a)
+target_include_directories(libroot PUBLIC ../include)
+target_include_directories(libroot PUBLIC ../lib)

@@ -1,0 +1,398 @@
+\subsection{前提准备}
+
+\begin{problem}[实根分离]~
+	
+	对于没有重根的多项式，实根分离是构造一系列不相交的区间，使得这些区间不相交，且每个区间内有且只有一个实根，并且多项式所有的实根都被区间覆盖到。
+	
+	\contribution[摘自维基百科\footnotemark]{叶隽希}
+	
+\end{problem}
+\footnotetext{\url{https://en.wikipedia.org/wiki/Real-root\_isolation}}
+
+使用实根分离可以更好地使用迭代法，因为每个区间只有一个实根，那么迭代法就能快速地找到多项式所有的实根。我们首先提出了用 Sturm 定理来解决实根分离问题的算法。定理说明如下：
+
+\begin{definition}[Sturm 序列]~
+	
+	对于多项式 $f$ ，定义 $f$ 的\textbf{Sturm 序列} $T$ 如下:
+	$$
+	\begin{aligned}
+		& T_0 = f \\
+		& T_1 = f' \\
+		& T_{n + 1} = -\textrm{rem}(T_{n - 1}, T_n) \ \ \ \ (n \ge 1, \ \deg {T_n} \ge 1)
+	\end{aligned}
+	$$
+	
+	其中 $\textrm{rem}(f, g)$ 是唯一满足 $f = gh + \textrm{rem}(f, g)$，且 $\deg \textrm{rem}(f, g) \le \deg g - 1$ 的多项式。此处 $h$ 亦为某多项式。
+	
+	\contribution[摘自维基百科]{吕敬一}
+	
+\end{definition}
+
+\begin{definition}[实数在多项式序列中的变号数]~
+	
+	对于多项式序列 $T_0, T_1, \cdots, T_m$ 和 $x \in \mathbb{R}$，记数列 $\{v_n\}$ 为 $v_i = T_i(x) \ (0 \le i \le m)$。
+	
+	定义\textbf{ $x$ 在 $T$ 中的变号数} 为 $\{v_n\}$ 中满足 $v_i \neq 0$ 且 $v_i$ 与其前一个非零项异号的正下标 $i$ 的数量，记作 $\var(T, x)$ 。
+	
+	\contribution[摘自维基百科]{吕敬一}
+	
+\end{definition}
+
+\begin{theorem}[Sturm 定理]~
+	
+	若 $a, b \ (a < b)$ 都不是多项式 $f$ 的零点，则 $f$ 在 $(a, b)$ 上的不同零点个数为 $\var(T, a) - \var(T, b)$ ，其中 $T$ 为 $f$ 的 Sturm 序列。 
+	
+	\contribution[摘自维基百科]{吕敬一}
+	
+\end{theorem}
+
+根据定理2，利用上一节中子问题的结果，结合牛顿迭代法（步骤6、7、8）设计了如下算法：
+
+\subsection{算法流程}
+
+\begin{algorithm}[Sturm-Newton 算法]~
+	
+	\textbf{步骤1.} 对于输入的多项式 $f$ ，求出其 Sturm 序列 $T$ 备用。
+	
+	\textbf{步骤2.} 将区间 $[-bound, bound]$ 作为初始区间插入求解队列q中。
+	
+	\textbf{步骤3.} 若q为空，则跳转至步骤9；否则，取出队列q最前端的区间 $[l, r]$。若 $f(l)$ 在容差允许范围内等于0，则将 $l$ 加入答案列表，并调用 \verb|gb_findNotZero()| 找到大于 $l$ 的最近的使得 $f(l')$ 在容差范围内不为0的浮点数 $l'$，并令 $l := l'$ 。对于 $r$ 同理亦然。
+	
+	\textbf{步骤4.} 利用 Sturm 定理计算 $[l, r]$ 中不同实根的数量 rootNum。若 rootNum 大于等于2，或 rootNum 等于1且 $r - l$ 大于等于给定阈值 $L$，则进入步骤5；若 rootNum 等于0，跳转至步骤3；否则，跳转至步骤6。
+	
+	\textbf{步骤5.} 若 rootNum 大于等于2，则将 $[l, r]$ 作二等分；否则将 $[l, r]$ 作 $k$ 等分。把等分所得区间插入队列q末尾，回到步骤2。
+	
+	\textbf{步骤6.} 令 $x_0 := \frac{l + r}{2}$ 。不断执行步骤7，直至步骤7已被执行 ITER\_LIM 次或 $|\frac{f(x_0)}{f'(x_0)}| < \frac{e}{10}$ 。
+	
+	\textbf{步骤7.} 若 $f'(x_0) \neq 0$，则令 $x := x_0 - \frac{f(x_0)}{f'(x_0)}$；否则，调用 \verb|gb_findNotZero()| 找到大于 $x_0$ 的最近的使得 $f'(x_1) \neq 0$ 的浮点数 $x_1$ ，并令 $x := x_1 - \frac{f(x_1)}{f'(x_1)}$ 。最后，再置 $x_0 := x$ 。
+	
+	\textbf{步骤8.} 将 $x_0$ 加入答案列表，跳转至步骤3。
+	
+	\textbf{步骤9.} 对于答案列表中的每一个根 $x$，调用 \verb|gb_getRepetition()| 计算其重根数。若 $f'(x) \neq 0$，将 $|\frac{f(x)}{f'(x)}|$ 记为其误差；否则，将其误差记为0。
+	
+	\textbf{步骤10.} 按照要求，根据答案列表中根的情况设置变量 flag 的值。
+	
+	\textbf{算法结束。} 此算法由吕敬一进行了代码实现。
+	
+	\contribution{吕敬一}
+	
+\end{algorithm}
+
+在实际操作中，取 $L = 0.1, k = 2, \textrm{ITER\_LIM} = 100$ 。关于 $k$ 的取值，在算法设计时进行了分析，详见下一小节理论证明。
+
+\subsection{理论证明}
+
+	\begin{theorem}[算法2中区间等分数 k 的最优值为2]~
+		
+		证明：
+		
+		对于一个有一个根 $x_0$ 但未作求解的区间 $I$，设其长度为 $l \ (l > L)$，设单次求解某实数在 Sturm 序列中变号数的时间开销为 $s$，每个区间 $k$ 等分需要计算 $k - 1$ 个分割点的变号数（区间端点由于上一层分割时已计算过，可用 unordered\_map 存储下来，不再计算）。设由 $I$ 最终求出长度小于 $L$ 的只有一个根的区间的时间开销为 $f(k, l)$，
+		$$
+		\begin{aligned}
+			f(k, l) & = (k - 1)s \log_k \frac{l}{L} \\
+			& = s\ln \frac{l}{L} \cdot \frac{k - 1}{\ln k} 
+		\end{aligned}
+		$$
+		
+		记 $g(x) = \frac{x - 1}{\ln x} \ (x \ge 2)$, 有 $g'(x) = \frac{\ln x - 1 + \frac{1}{x}}{(\ln x) ^ 2}$,
+		注意到 $x \in [3, +\infty)$ 时，$\ln x - 1 + \frac{1}{x} > 0$ ，则 $g(x)$ 在 $[3, +\infty)$ 的最小值为 $g(3) = \ln 3 - \frac{2}{3} > \ln 2 - \frac{1}{2}$ 。而算法流程中 $k$ 为大于等于2的整数，故 $k = 2$ 时对于任意给定的 $l$ ，$f(k, l)$ 取得最小值。
+		\qedhere
+		
+		\contribution{吕敬一}
+		
+	\end{theorem}
+
+	现补充 Sturm 定理以及步骤6、7、8所涉及之牛顿迭代法的证明。
+	
+	\begin{proof}[Sturm 定理]~
+		
+		对于多项式 $f(x)$ 和 $a, b \in \mathbb{R} \ (a < b)$ ，记 $f(x)$ 的 Sturm 序列为 $T: \ T_0, T_1, \cdots, T_m$ 。假设 $a, b$ 均不是 $f(x)$ 的根。
+		
+		首先证明 $T$ 的性质：任意 $1\le i < m, \gcd(T_i, T_{i + 1}) = \gcd(T_0, T_1)$ 。
+			
+		\subsubsection*{\ \ \ \ \ \ Sturm 序列的性质}
+			
+			对于 $i = 1$ 有
+			$$
+			\begin{aligned}
+			\gcd(T_1, T_2) & = \gcd(T_1, -\textrm{rem}(T_0, T_1)) \\
+						   & = \gcd(T_1, \textrm{rem}(T_0, T_1)) \\
+						   & = \gcd(T_1, T_0 - h(x)T_1) \\
+						   & = \gcd(T_0, T_1) 
+			\end{aligned}
+			$$
+			
+			其中 $h(x)$ 是某多项式。同理依次可证明 $i = 2, 3, \cdots, m - 1$ 的情形。
+		
+		不妨设 $d(x) = \gcd(f(x), f'(x))$ 。考虑将 $f(x)$ 的实根对应的因式分离出来，则 $f(x)$ 可表示为
+		$$
+		f(x) = g(x)\prod_{i = 1}^k (x - x_i)^{r_i}
+		$$
+		
+		其中 $x_1, x_2, \cdots, x_k$ 为 $f(x)$ 的全体实根，$r_1, r_2, \cdots, r_k$ 为对应的重根数。注意到
+		$$
+		f'(x) = \sum_{i = 1}^k \frac{r_i}{x - x_i} g(x)\prod_{j = 1}^k (x - x_j)^{r_j} + g'(x)\prod_{j = 1}^k (x - x_j)^{r_j}
+		$$
+		
+		则使得 $f'(x)$ 能被 $(x - x_i)^t$ 整除的最高次数 $t = r_i - 1$ ，进而 
+		$$
+		d(x) = \gcd(f(x), f'(x)) = h(x)\prod_{i = 1}^k (x - x_i)^{r_i - 1}
+		$$
+		
+		其中 $h(x)$ 是不被任意 $(x - x_i)$ 整除的某多项式。由 $f(x)$ 被 $h(x)$ 整除易知 $h(x)$ 无实根。
+		
+		定义多项式序列 $S: \ S_i = \frac{T_i}{d(x)}, \ 0 \le i \le m$ ，则 $\forall 0 \le i < m, \gcd(S_i, S_{i + 1}) = \dfrac{\gcd(T_i, T_{i + 1})}{d(x)} = \dfrac{\gcd(T_0, T_1)}{d(x)} = 1$ 。这即说明 $\forall x \in \mathbb{R}$ ，$S_i(x)$ 和 $S_{i + 1}(x)$ 不同时为0。\textbf{换言之，$S$ 中任意相邻两项不会同时取值为0。}
+		
+		此外，考虑 $S$ 的首项，有
+		$$
+		S_0 = \dfrac{T_0}{d(x)} = \frac{g(x)}{h(x)}\prod_{i = 1}^k (x - x_i) 
+		$$
+		
+		注意到 $g(x)$ 无实根，因而 $S_0$ 的全体不同实根为 $x_1, x_2, \cdots, x_k$ ，\textbf{与 $f(x)$ 相同。值得注意的是，$S_0$ 没有重根。}
+		
+		由于 $a$ 不是 $f(x)$ 的根，$a - x_i \neq 0$ 对 $1 \le i \le k$ 成立。又由 $h(x)$ 无实根知 $d(a) \neq 0$ ，从而 $T_i(a)$ 与 $S_i(a)$ 要么均为0，要么相差一个非零常数倍，\textbf{因而有 $\var(T, a) = \var(S, a)$ 。同理 $\var(T, b) = \var(S, b)$ 。}
+		
+		\textbf{故只要证 $S_0$ 在 $(a, b)$ 上的实根数为 $\var(T, a) - \var(T, b)$ 即可。} 考虑变量 $x$ 从 $a$ 连续变化至 $b$ 的过程中 $\var(S, x)$ 的变化，不难发现仅当 $x$ 经过某个 $S_i$ 的根时 $\var(S, x)$ 可能发生变化。作如下讨论：
+		
+		\subsubsection*{\ \ \ \ \ \ $x$ 经过 $S_0$ 的根}
+			
+			设 $x$ 经过了 $S_0$ 的根 $x_0$ ，有 $S_0(x_0) = f(x_0) = 0$ ，进而根据事实2必存在 $x_0$ 的去心邻域 $\mathring{U}(x_0, \delta)$ 使得该邻域内 $f(x_0)$ 非零。
+			
+			注意到 $f(x)f'(x) = T_0T_1 = S_0S_1(d(x))^2$ ，知 $f(x)f'(x)$ 与 $S_0S_1$ 同号。又设 $p(x) = \frac{1}{2}(f(x))^2$ ，有 $p'(x) = f(x)f'(x)$ 且 $p(x)$ 在 $\mathring{U}(x_0, \delta)$ 恒正。
+			
+			故根据事实5知存在 $\epsilon \in (0, \delta] $ 使得 $\forall x \in (x_0 - \epsilon, x_0), p'(x) = f(x)f'(x) < 0$ 且 $\forall x \in (x_0, x_0 + \epsilon), f(x)f'(x) > 0$ 。
+			
+			换言之，在 $x$ 经过 $x_0$ 时，$S_0(x)S_1(x)$ 从负变为正			，$S_0(x)$ 与 $S_1(x)$ 从异号变为同号，$\var(S, x)$ 减少1。
+		 
+		\subsubsection*{\ \ \ \ \ \ $x$ 经过 $S_i (1 \le i \le m)$ 的根}
+		
+			若 $i = m$ 且 $S_m = 0$ 则对 $\var(S, x)$ 没有影响，不作考虑。
+			
+			否则，设 $x$ 经过了 $S_i$ 的根 $x_0$ ，有 $S_i(x_0) = 0, S_{i + 1}(x_0) \neq 0, S_{i - 1}(x_0) \neq 0$ 。根据 Sturm 序列的定义知存在多项式 $q(x)$ 满足
+			$$
+			T_{i - 1} = T_iq(x) - T_{i + 1}
+			$$
+			
+			即
+			$$
+			S_{i - 1}d(x) = S_id(x)q(x) - S_{i + 1}d(x)
+			$$
+			
+			由于 $d(x) = \gcd(f(x), f'(x))$ 非零，有
+			$$
+			\begin{aligned}
+			& S_{i - 1} = S_iq(x)- S_{i + 1} \\
+			& S_{i - 1}(x_0) = S_i(x_0)q(x_0) - S_{i + 1}(x_0) = -S_{i + 1}(x_0) 
+			\end{aligned}
+			$$
+			
+			这即说明 $S_{i - 1}(x_0), S_{i + 1}(x_0)$ 异号，进而存在 $x_0$ 的某个邻域 $U(x_0, \delta)$ 使得 $S_{i - 1}, S_{i + 1}$ 在该邻域不变号且彼此异号，同时 $S_i$ 在该邻域非零。
+			
+			不难发现当 $x \in \mathring{U}(x_0, \delta)$ 时，无论 $S_i(x)$ 符号如何，$S_{i - 1}(x)$ 和 $S_{i + 1}(x)$ 中必恰有一者与之同号，一者与之异号，故在该邻域内 $(S_{i - 1}, S_i, S_{i + 1})$ 对 $\var(S, x)$ 的贡献总为1，$\var(S, x)$ 不变。
+			
+		综上，$S_0$ 在 $(a, b)$ 的实根数恰等于 $\var(S, a) - \var(S, b)$ ，即 $f(x)$ 在 $(a, b)$ 的实根数恰等于 $\var(T, a) - \var(T, b)$ 。
+		\qedhere
+		
+		\contribution{吕敬一}
+		
+	\end{proof}
+
+	\begin{proof}[牛顿迭代法的收敛性]~
+		
+		设五次及以上多项式 $f(x)$ 有实根 $\alpha$ 。若 $\alpha$ 处有重根， 由引理2，$f'(\alpha) = 0$ 。注意到 $f'(x)$ 也是多项式，由事实2知存在 $\alpha$ 的去心邻域 $\mathring{U}(\alpha, \delta)$ 满足 $\forall x \in U(\alpha, \delta), \ f'(x) \neq 0$ 。若 $\alpha$ 处无重根，由引理2，$f'(\alpha) \neq 0$ ，进而由连续性可知存在邻域 $U(\alpha, \delta)$ 使得 $\inf\limits_{x \in U(\alpha, \delta)} |f'(x)| > 0$。
+		
+		\textbf{下面的讨论在 $U(\alpha, \delta)$ 或 $\mathring{U}(\alpha, \delta)$ 中进行，并假设 $\delta$ 足够小。}设牛顿迭代的一系列猜测值为 $x_0, x_1, \cdots$ ，满足 $x_n \in U(\alpha, \delta)$ 。记 $d_n = |x_n - \alpha|$ 。
+		\subsubsection*{\ \ \ \ \ \ $\alpha$ 处无重根}
+		根据步骤7，运用事实3，有
+		$$	
+		f(x_n) + f'(x_0)(\alpha - x_n) + \frac{f''(\xi)}{2} (\alpha - x_n)^2 = f(\alpha) = 0
+		$$
+		
+		则
+		$$
+		\begin{aligned}
+		d_{n + 1} & = \left|x_{n + 1} - \alpha \right| \\
+		& = \left|x_n - \frac{f(x_n)}{f'(x_n)} - \alpha\right| \\
+		& = \left|x_n - \alpha - \frac{f(x_n)(x_n - \alpha) - \frac{f''(\xi)}{2}(x_n - \alpha)^2}{f'(x_n)} \right| \\
+		& = \left|-\frac{f''(\xi)(x_n - \alpha)^2}{2f'(x_n)}\right| \\
+		& = d_n^2\left|\frac{f''(\xi)}{2f'(x_n)}\right| \\
+		\end{aligned}
+		$$
+		
+		由于 $x_n \in U(\alpha, \delta)$ ，$|f'(x_n)| \ge \inf\limits_{x \in U(\alpha, \delta)} |f'(x)| > 0$ ，故 $\frac{f''(\xi)}{2f'(x_n)}$ 有界。
+		
+		不妨设 $\left|\frac{f''(\xi)}{2f'(x_n)}\right| \le M$ ，立得：
+		
+		\begin{equation}
+			d_{n + 1} \le Md_n^2
+		\end{equation}
+		
+		而 $d_0 = |x_0 - \alpha| < \delta$ 很小，可以认为 $Md_0 < 1$ 。故有 $d_1 \le Md_0^2 < d_0$ 。
+		假设 $d_n < d_{n - 1} < \cdots < d_1 < d_0$ ，则
+		$$
+		d_{n + 1} \le Md_n^2 < Md_0d_n < d_n
+		$$
+		
+		由第二数学归纳法知 ${d_n}$ 单调递减，进而 $\{d_n\}$ 收敛。
+		
+		不妨设 $\lim\limits_{n \rightarrow \infty} d_n = A (0 \le A < \frac{1}{M})$ ，对 $(1)$ 式两侧取极限，得
+		$$
+		A \le MA^2
+		$$
+		
+		解得 $A \in (-\infty, 0] \cup [\frac{1}{M}, +\infty)$ 。结合 $0 \le A < \frac{1}{M}$ 知 $A = 0$ 。
+		
+		故牛顿迭代法在 $\alpha$ 附近二阶收敛。
+		
+		\subsubsection*{\ \ \ \ \ \ $\alpha$ 处有重根}
+		由引理2，设重根数为 $m$ ，则 $f^{m}(x) \neq 0$ 。根据步骤7和事实3有：
+		$$
+		\begin{aligned}
+		d_{n + 1} & = \left|x_{n + 1} - \alpha \right| \\
+		& = \left|x_n - \frac{f(x_n)}{f'(x_n)} - \alpha\right| \\
+		& = \left|x_n - \alpha - \dfrac{\dfrac{f^{(m)}(\alpha)(x_n - \alpha)^m}{m!} + o((x_n - \alpha)^m)}{\dfrac{f^{(m)}(\alpha)(x - \alpha)^{m - 1}}{(m - 1)!} + o((x_n - \alpha)^{m - 1})} \right| \\
+		& = \left|\dfrac{\dfrac{(m - 1)f^{(m)}(\alpha)(x_n - \alpha)^m}{m!} + o((x_n - \alpha)^m)}{\dfrac{f^{(m)}(\alpha)(x - \alpha)^{m - 1}}{(m - 1)!} + o((x_n - \alpha)^{m - 1})}\right| \\
+		& = \frac{m - 1}{m}d_n
+		\end{aligned}
+		$$
+		
+		故牛顿迭代法在 $\alpha$ 附近线性收敛。
+		\qedhere
+		
+		\contribution[部分参考自维基百科，大部分独立提出]{吕敬一}
+		
+	\end{proof}
+
+	这说明了算法2中步骤6、7、8的有效性：只要实根分离出的区间足够小，便能收敛至区间之内的实根。关于所需区间长度的理论分析，我们没有得到理想的结果，只得到了如下对绝大部分情况适用但实际操作中不易实施的结论：
+	
+	\begin{theorem}[无重根条件下理想收敛结果的初值条件]~
+		
+		\textbf{下面假设多项式 $f(x)$ 没有重根。}
+		
+		假设已知一区间 $[l, r]$ 使得存在恰好一个 $\alpha \in [l, r]$ 是 $f(x)$ 的实根。根据定理2，$f’(\alpha) \neq 0$ 。\textbf{假设}存在 $\alpha$ 的一个邻域 $U(\alpha, \delta)$ 使得邻域内 $f'(x), f''(x), f'''(x)$ 均不变号，即邻域内 $f(x), f'(x), f''(x)$ 单调。
+		
+		当满足
+		$$
+		\left\{
+		\begin{aligned}
+			& r - l < \dfrac{4\min\{|f'(l)|, |f'(r)|\}}{\max\{|f''(l)|, |f''(r)|\}} \\
+			& [l, r] \subset U(\alpha, \delta)
+		\end{aligned}
+		\right.
+		$$
+		
+		时，选取初值 $\frac{l + r}{2}$ ，牛顿迭代将收敛至 $\alpha$ 。
+		
+		\contribution{吕敬一}
+		
+	\end{theorem}
+
+	\begin{proof}[]~
+		
+		我们只要证明 $Md_0 < 1$ 即可（$M$ 的定义见证明5）。
+		
+		由于 $\alpha \in [l, r]$ ，有 $d_0 = \left|\frac{l + r}{2} - \alpha\right| \le \frac{r - l}{2}$ 。
+		
+		而根据 $f'(x), f''(x)$ 的单调性，不难得到
+		$$
+		\left|\frac{f''(\xi)}{2f'(x_n)}\right| \le \dfrac{\max\{|f''(l)|, |f''(r)|\}}{2\min\{|f'(l)|, |f'(r)|\}}
+		$$
+		
+		令 $M = \dfrac{\max\{|f''(l)|, |f''(r)|\}}{2\min\{|f'(l)|, |f'(r)|\}}$ ，立得
+		$$
+		\begin{aligned}
+		Md_0 & = \dfrac{\max\{|f''(l)|, |f''(r)|\}}{2\min\{|f'(l)|, |f'(r)|\}} \cdot \frac{r - l}{2} \\
+		& < \dfrac{\max\{|f''(l)|, |f''(r)|\}}{2\min\{|f'(l)|, |f'(r)|\}} \cdot \dfrac{2\min\{|f'(l)|, |f'(r)|\}}{\max\{|f''(l)|, |f''(r)|\}} \\
+		& = 1
+		\end{aligned}
+		$$
+		\qedhere
+		
+		\contribution{吕敬一}
+		
+	\end{proof}
+
+	由于假设条件不一定能满足且难以验证，这个结论缺乏实用性，我们在实际算法设计中选择了手动估计区间长度阈值 $L$ 。
+	
+	另外，算法2的步骤6和步骤9都涉及了根据当前点的多项式值和导数值估计当前的误差。现形式化地补充该定理及其证明：
+	
+	\begin{theorem}[微小误差估计]~
+		
+		设 $x_0$ 是多项式 $f(x)$ 的一个实根，$x - x_0$ 充分小且 $f'(x) \neq 0$ ，则
+		$$
+		x - x_0 \approx \frac{f(x)}{f'(x)}
+		$$
+		
+		\contribution{吕敬一}
+	
+	\end{theorem}
+
+	\begin{proof}[微小误差估计]~
+	
+		运用事实3，在 $x$ 处对 $f(x)$ 泰勒展开，得
+		$$
+		f(x_0) = f(x) + f'(x)(x_0 - x) + o(x_0 - x)
+		$$
+		
+		注意到 $x_0$ 是 $f(x)$ 的根，$f(x_0) = 0$ ，即有
+		$$
+		x - x_0 = \frac{f(x)}{f'(x)} + o(1)
+		$$
+		
+		由 $x - x_0$ 极小，忽略 $o(1)$ 项即证。
+		\qedhere
+		
+		\contribution{吕敬一}
+		
+	\end{proof}
+\subsection{数值验证}
+
+运用7.1节的方法对算法2进行了数值验证，注意到三条主要问题：
+
+(1) 在利用 Sturm 定理计算某些区间所含不同实根数时，有时会出现错误，导致最后出现丢根的情况。极端情况下甚至可能将有实根的多项式方程判定为没有实根。经过分析，这种情况几乎只出现在包含重根的区间上。
+
+\begin{example}[]~
+	
+	当多项式为例子1中的第一个13次多项式时，算法2得到的实根为
+	$$
+	\begin{aligned}
+	& -1.4382158100094859509709976919111795723438262939453125 \\ & -0.91065489381036457405826922695268876850605010986328125 \\  & -0.844452842338522913223641808144748210906982421875 \\ & -0.743000962121088459610973586677573621273040771484375 \\ & -0.60024708012588556815813944922410883009433746337890625 \\ & -0.057085484496008483124018795251686242409050464630126953125 \\ & 0.018782197988160963253445601139901555143296718597412109375 \\ & 0.018782197988160963253445601139901555143296718597412109375 \\ & 0.106847165384948372679474459800985641777515411376953125 \\ & 0.490084625174973254058130578414420597255229949951171875 \\ & 0.9923277860580725917571953687001951038837432861328125 \\
+	\end{aligned}
+	$$
+	
+	与例子1中的精确实根对比，两次重根的0.197466被遗漏了。
+	
+	当多项式为
+	$$
+	(x - 1.0782053783126188672980561022995971143245697021484375)^8
+	$$
+	时，显然有实根1.0782053783126188672980561022995971143245697021484375，但算法2返回结果为不存在实根。
+	
+	\contribution{吕敬一}
+	
+\end{example}
+
+(2) 对包含一个重根次数比较多的实根的区间进行牛顿迭代法求解时，无论如何增加迭代次数，根的精度都非常低，无法达到要求。
+
+\begin{example}[]~
+	
+	当多项式为例子2中的多项式时，算法2求出的实根为0.1458024118246819544886250241688685
+	49168109893798828125，与0.144122的误差很大，超过了预设的容差 $10^{-6}$ 。
+	
+	\contribution{吕敬一}
+	
+\end{example}
+
+(3) 在步骤9中计算重根数时，有时计算结果并不准确。初步分析是因为没有控制好高阶导数值的容差，或是不可避免的浮点运算精度丢失导致。
+
+\begin{example}[]~
+	
+	当多项式为
+	$$
+	(x - 0.426447228330617933433899224837659858167171478271484375)^2
+	$$
+	时（精确实根为 0.426447228330617933433899224837659858167171478271484375，重根两次），算法2返回了0.426447224569169336394480751550872810184955596923828125，但给出重根数为1。
+	
+	\contribution{吕敬一}
+	
+\end{example}

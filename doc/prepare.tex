@@ -1,0 +1,154 @@
+\subsection{定义}
+
+首先给出接下来会用到的一些定义：
+
+\begin{definition}[邻域]~
+
+	\textbf{$x_0 \in \mathbb{R}$ 的邻域 $U(x_0, \delta) = (x_0 - \delta, x_0 + \delta)$} 
+	
+	\textbf{$x_0 \in \mathbb{R}$ 的去心邻域 $\mathring{U}(x_0, \delta) = (x_0 - \delta, x_0) \cup (x_0, x_0 + \delta)$}
+	
+\end{definition}
+
+\begin{definition}[多项式的取模与整除]~
+
+	对于多项式 $f(x), g(x)$ ，记 $f(x)$ 对 $g(x)$ 取模的结果为 $\textrm{rem}(f(x), g(x))$ ，则 $\textrm{rem}(f(x), g(x))$ 是满足如下条件的唯一多项式（ $h(x)$ 也是多项式）：
+	$$
+	\left\{
+	\begin{aligned}
+		& f(x) = g(x)h(x) + \textrm{rem}(f(x), g(x)) \\
+		& \deg \textrm{rem}(f(x), g(x)) < \deg g(x)
+	\end{aligned}
+	\right.
+	$$
+	
+	如果 $\textrm{rem}(f(x), g(x)) = 0$ ，则称\textbf{ $f(x)$ 被 $g(x)$ 整除}或\textbf{ $f(x)$ 包含因子 $g(x)$ }。
+	
+\end{definition}
+
+\begin{definition}[多项式的最大公因式]~
+	
+	如果多项式 $f(x)$ 和 $g(x)$ 都被多项式 $h(x)$ 整除，则称\textbf{ $h(x)$ 是 $f(x)$ 和 $g(x)$ 的公因式}。在 $f(x)$ 和 $g(x)$ 的公因式中次数最高且最高次项系数为1的被称为\textbf{ $f(x)$ 和 $g(x)$ 的最大公因式}，记为 $\gcd(f(x), g(x))$ 。两个多项式的最大公因式唯一且非零。
+	
+\end{definition}
+
+\subsection{基本事实}
+
+在研究过程中，我们注意到如下基本事实：
+
+\begin{fact}[介值定理]~
+	
+	对于 $\mathbb{R}$ 上的连续函数 $f(x)$，若 $f(a)f(b) < 0(a < b)$，则 $(a, b)$ 中存在 $f(x)$ 的零点。
+	
+\end{fact}
+
+\begin{fact}[代数基本定理的推论]~
+
+	任一实系数 $n$ 次多项式至多有 $n$ 个实根（含重根）。
+
+\end{fact}
+
+\begin{fact}[带余项的泰勒公式]~
+	
+	设 $f(x)$ 在 $x_0$ 的某个邻域内存在 $n$ 阶导数，则当 $x \rightarrow x_0$ 时，
+	$$
+	\begin{aligned}
+	f(x) = \sum_{k = 0}^{n} \frac{f^{(k)}(x_0)}{k!} (x - x_0)^k + o((x - x_0)^n) \\
+	f(x) = \sum_{k = 0}^{n - 1} \frac{f^{(k)}(x_0)}{k!} (x - x_0)^k + \frac{f^{(n)}(\xi)}{n!} (x - x_0)^n
+	\end{aligned}
+	$$
+	
+	其中 $\xi$ 在 $x_0$ 和 $x$ 之间。
+	
+\end{fact}
+
+\begin{fact}[最大公因式的基本性质]~
+
+	以下 $f(x), g(x), h(x)$ 为多项式，$a (a \neq 0)$ 为 $f(x)$ 的最高次项系数，$k$ 为任意非零实数。
+	$$
+	\begin{aligned}
+	\gcd(f(x), kg(x)) & = \gcd(f(x), g(x)) \\
+	\gcd(f(x), g(x)) &= \gcd(f(x), g(x) + h(x)f(x)) \\
+	\gcd(f(x), 0) & = \frac{f(x)}{a} \\
+	\gcd(f(x)h(x), g(x)h(x)) = h(x) \gcd(f(x), g(x))
+	\end{aligned}
+	$$
+
+\end{fact}
+
+\begin{fact}[多项式的微分性质]~
+
+	任意多项式都是 $\mathbb{R}$ 上的连续函数；
+	
+	任意多项式的导数还是多项式；
+
+	若某多项式在 $x = x_0$ 处取极小值，则存在 $\delta > 0$ 使得 $\forall x \in (x_0 - \delta, x_0), f'(x) < 0$ 且 $\forall x \in (x_0, x_0 + \delta), f'(x) > 0$ 。极大值情况同理。
+	
+\end{fact}
+
+\subsection{引理}
+
+并给出了如下引理：
+
+\begin{lemma}[多项式重根数与高阶导数值的关系]~
+	
+	若多项式 $f(x)$ 有实根 $x_0$ ，则 $f(x)$ 在 $x = x_0$ 处的重根数为 $r (r \le \deg f)$ 是 $f^{(i)}(x_0) = 0, \ (i \in \{1, 2, \cdots, r - 1\})$ 且 $f^{(r)}(x_0) \neq 0$ 的充分条件。
+	
+	\contribution{吕敬一}
+	
+\end{lemma}
+
+下文朴素二分法与Sturm-Newton算法中gb\_getRepetition()函数均为该引理的直接应用，其原理不再赘述。
+
+\begin{proof}[多项式重根数与高阶导数值的关系]~
+	
+	据假设，多项式 $f(x)$ 含有因子 $(x - x_0)^r$ ，不妨设 $f(x) = (x - x_0)^r g(x)$ ，其中 $g(x)$ 不含因子 $(x - x_0)$ 。考虑 $f(x)$ 的 $1, 2, \cdots, r$ 阶导数：
+	$$
+	\begin{aligned}
+		f^{(1)}(x) & = r(x - x_0)^{r - 1}g(x) + (x - x_0)^rg^{(1)}(x) \\
+		f^{(2)}(x) & = r(r - 1)(x - x_0)^{r - 2}g(x) + 2r(x - x_0)^{r - 1}g^{(1)}(x) + (x - x_0)^rg^{(2)}(x) \\
+		f^{(3)}(x) & = r(r - 1)(r - 2)(x - x_0)^{r - 3}g(x) + 3r(r - 1)(x - x_0)^{r - 2}g^{(1)}(x) + 3r(x - x_0)^{r - 1}g^{(2)}(x) \\
+		& + (x - x_0)^rg^{(3)}(x) \\
+		& \vdots \\
+		f^{(r - 1)}(x) & = \sum_{i = 0}^{r - 1} \binom{r - 1}{i} (x - x_0)^{r - i}g^{(r - 1 - i)}(x) \prod_{j = 0}^{i - 1} (r - j) \\
+		f^{(r)}(x) & = \sum_{i = 0}^{r} \binom{r}{i} (x - x_0)^{r - i}g^{(r - i)}(x) \prod_{j = 0}^{i - 1} (r - j) \\
+	\end{aligned}		
+	$$
+	
+	观察发现 $f^{(1)}(x), f^{(2)}(x), \cdots, f^{(r - 1)}(x)$ 中每一项都被 $(x - x_0)$ 整除，从而 $f^{(1)}(x) = f^{(2)}(x) = f^{(r - 1)}(x_0) = 0$ 。而 $f^{(r)}(x)$ 中恰有一项 $(x - x_0)^0g(x)r!$ 不含因子 $(x - x_0)$ ，故 $f^{(r)}(x_0) \neq 0$ 。
+	\qedhere
+	
+	\contribution{吕敬一}
+	
+\end{proof}
+
+\begin{lemma}[无重根多项式与其导函数的公因子]~
+	
+	对于无重根多项式 $f(x)$，及其导函数 $f'(x)$，有其最大公因子为 $1$，即 $\gcd(f(x), f'(x)) = 1$
+
+	\contribution{潘佳奇}
+	
+\end{lemma}
+
+\begin{proof}[无重根多项式与其导函数的公因子]~
+
+	对于 $f(x)$ 得其分解 $f(x) = (x - x_1) (x - x_2) \dots (x - x_n)$，则 $f(x)$ 只可能有 $(x - x_i)$ 形式的因子。
+
+	对于 $f'(x)$，有
+	$$
+	f'(x) = \sum_{i=1}^{n} -x_i (x - x_1) \cdots (x - x_{i - 1}) (x - x_{i + 1}) \cdots (x - x_n).
+	$$
+
+	假设 $f'(x)$ 被 $(x - x_i)$ 整除，则有
+	$$
+	f'(x) \equiv -x_i(x - x_1) \cdots (x - x_{i - 1}) (x - x_{i + 1}) \cdots (x - x_n) \pmod{(x - x_i)}.
+	$$
+
+	但是因为 $f(x)$ 没有重根，$(x - x_1) \cdots (x - x_{i - 1}) (x - x_{i + 1}) \cdots (x - x_n)$ 不被 $(x - x_i)$ 整除，与 $f'(x)$ 被 $(x - x_i)$ 整除矛盾。
+
+	所以 $\gcd(f(x), f'(x)) = 1$。
+	\qedhere
+
+	\contribution{潘佳奇}
+	
+\end{proof}

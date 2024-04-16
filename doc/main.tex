@@ -1,0 +1,61 @@
+% \documentclass{article}[UTF-8]
+\documentclass{ctexart}
+\usepackage{pendulum}
+\allowdisplaybreaks[0]
+\newcommand\var{\mathrm{var}}
+
+\begin{document}
+	
+	\begin{titlepage}
+    
+    \centering
+    \vspace*{\fill}
+    
+    \vspace*{0.5cm}
+    
+    \huge\bfseries
+    一元五次及以上多项式方程的实根求解
+    
+	\vspace*{0.5cm}
+	
+	\large 吕敬一 (lv-jy22@mails.tsinghua.edu.cn) \\ 潘佳奇 (panjq22@mails.tsinghua.edu.cn) \\ 叶隽希 (yejx22@mails.tsinghua.edu.cn)
+	
+	\today
+	
+	\vspace*{\fill}
+	
+	\end{titlepage}
+
+    \tableofcontents
+    \clearpage
+
+	\section{问题描述}
+		给定一元5次以上多项式方程的系数，求解方程实根的存在情况（包括是否存在，是否有重根）以及具体数值，并计算求得 double 类型数值的绝对误差，使其尽量小。
+
+	\section{前置约定}
+
+	\input{prepare.tex}
+
+	\section{算法设计: 朴素二分法}
+	
+	\input{bisection.tex}
+	
+	\section{算法设计：Sturm-Newton算法}
+	
+	从上述问题中可以看出，找到有根区间是一个较大的难点。此外，可能需要考虑二分法以外的数值方法来应对偶数次重根的情况。
+	
+	\input{sturm_newton.tex}
+	
+	\section{算法设计：基于笛卡尔符号规则的实根分离}
+	
+	\input{realroot_isolation.tex}
+
+	\section{对各算法的进一步优化}
+	
+	\input{optimization.tex}
+
+	\section{数值验证与算法改进}
+	
+	\input{test.tex}
+
+\end{document}
