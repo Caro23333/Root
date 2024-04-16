@@ -1,0 +1,11 @@
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/CMakeFiles/test.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/CMakeFiles/edit_cache.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/CMakeFiles/rebuild_cache.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/src/CMakeFiles/libroot.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/src/CMakeFiles/test.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/src/CMakeFiles/edit_cache.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/src/CMakeFiles/rebuild_cache.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/test/CMakeFiles/roots.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/test/CMakeFiles/test.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/test/CMakeFiles/edit_cache.dir
+C:/Users/Caro23333/Desktop/Coding/Roots/roots-master/build/test/CMakeFiles/rebuild_cache.dir
